@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catfish Catcher 🎣</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; 
+            height: 100dvh; 
+            overflow: hidden;
+            touch-action: none; 
+        }
+
+        /* --- FAKE SKETCHY ADS CSS --- */
+        .fake-ad {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 280px;
+            border: 6px dashed #ff0000;
+            padding: 20px;
+            text-align: center;
+            z-index: 1;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+            font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .fake-ad.left { left: 3%; background: #ffff00; }
+        .fake-ad.right { right: 3%; background: #ff00ff; border-color: #00ff00; }
+
+        .fake-ad h3 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            animation: flashWarning 0.3s infinite alternate;
+            margin-bottom: 10px;
+        }
+
+        .fake-ad.right h3 { animation: flashNeon 0.2s infinite alternate; }
+
+        .fake-ad p {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            line-height: 1.3;
+        }
+        
+        .fake-ad.right p { color: white; text-shadow: 2px 2px 0 #000; }
+
+        .fake-ad-img {
+            width: 100%;
+            height: 150px;
+            object-fit: contain; 
+            background-color: #000; 
+            border: 3px solid black;
+            margin-bottom: 15px;
+        }
+
+        .fake-ad-btn {
+            display: inline-block;
+            background: #00ff00;
+            color: black;
+            padding: 15px 25px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            border-radius: 10px;
+            border: 4px solid black;
+            animation: shakeBtn 0.1s infinite alternate;
+            text-transform: uppercase;
+        }
+
+        .fake-ad.right .fake-ad-btn { background: #ffff00; animation: pulseBtn 0.3s infinite alternate; }
+
+        @keyframes flashWarning { 0% { color: red; text-shadow: 0 0 10px yellow; } 100% { color: blue; text-shadow: 0 0 10px white; } }
+        @keyframes flashNeon { 0% { color: #00ff00; text-shadow: 0 0 15px white; transform: scale(1); } 100% { color: #ffff00; text-shadow: 0 0 25px red; transform: scale(1.1); } }
+        @keyframes shakeBtn { 0% { transform: translateX(-3px) rotate(-2deg); } 100% { transform: translateX(3px) rotate(2deg); } }
+        @keyframes pulseBtn { 0% { transform: scale(0.95); } 100% { transform: scale(1.1); } }
+
+        @media (max-width: 1050px) { .fake-ad { display: none; } }
+        /* ---------------------------- */
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 96dvh; 
+            max-height: 800px;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            z-index: 5; 
+        }
+
+        .header {
+            padding: 15px 20px;
+            text-align: center;
+            background: #fff;
+            flex-shrink: 0; 
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #fe3c72, #ff655b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header-stats { display: flex; justify-content: space-between; align-items: center; }
+
+        .stat-badge {
+            background: #f0f2f5;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #444;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .lives-board { letter-spacing: 2px; }
+
+        .card-area {
+            flex: 1; 
+            min-height: 0; 
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #f9f9f9;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            background: #111;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-img { width: 100%; height: 100%; object-fit: cover; object-position: center top; position: absolute; top: 0; left: 0; z-index: 1; }
+
+        .profile-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 100px 20px 20px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, transparent 100%);
+            z-index: 2;
+            color: white;
+        }
+
+        .profile-info h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .profile-info p { font-size: 0.95rem; font-weight: 400; line-height: 1.4; color: #eee; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+
+        .controls { display: flex; justify-content: space-evenly; padding: 20px; background: white; flex-shrink: 0; z-index: 2; }
+
+        .btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-catfish { color: #ff4b4b; border: 2px solid #ff4b4b; box-shadow: 0 8px 20px rgba(255, 75, 75, 0.25); }
+        .btn-real { color: #4cd964; border: 2px solid #4cd964; box-shadow: 0 8px 20px rgba(76, 217, 100, 0.25); }
+
+        @media (hover: hover) { .btn:hover { transform: scale(1.1); } }
+        .btn:active { transform: scale(0.9) !important; }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            z-index: 10;
+            display: none;
+        }
+
+        .overlay h2 { font-size: 2rem; margin-bottom: 10px; font-weight: 700; }
+
+        .verdict-gif {
+            width: 160px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 3px solid #ff4b4b;
+            display: none;
+        }
+
+        .overlay p {
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            color: #333;
+            line-height: 1.5;
+            font-weight: 500;
+            background: rgba(255,255,255,0.9);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .roast-text {
+            display: block;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+            color: #d32f2f;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 1rem;
+        }
+
+        .overlay-btn {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #fe3c72, #ff655b);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(254, 60, 114, 0.35);
+            width: 85%;
+            max-width: 260px;
+            transition: transform 0.2s;
+        }
+        
+        .overlay-btn:active { transform: scale(0.95); }
+        .overlay-btn-next { background: linear-gradient(45deg, #4a90e2, #63a4ff); box-shadow: 0 8px 20px rgba(74, 144, 226, 0.35); }
+
+        .rank-display {
+            font-size: 1.4rem;
+            color: #fe3c72;
+            font-weight: 700;
+            margin: 15px 0 10px 0;
+            padding: 12px 20px;
+            border: 3px solid #fe3c72;
+            border-radius: 15px;
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(254, 60, 114, 0.15);
+        }
+
+        .final-roast { font-size: 1rem; font-style: italic; color: #666; margin-bottom: 25px; padding: 0 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- FAKE SKETCHY AD 1 -->
+    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" class="fake-ad left">
+        <h3>🚨 WARNING! 🚨</h3>
+        <p>HOT SINGLES ARE EXACTLY 10 KM AWAY FROM YOU RIGHT NOW!</p>
+        <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=300&q=80" alt="Hot Single" class="fake-ad-img">
+        <span class="fake-ad-btn">MEET THEM!</span>
+    </a>
+
+    <!-- FAKE SKETCHY AD 2 (Fixed Banana Image!) -->
+    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" class="fake-ad right">
+        <h3>💊 MAKE IT BIGGER! 💊</h3>
+        <p>DOCTORS HATE HIM! Grow 5 inches in just 2 weeks with this ONE WEIRD TRICK!</p>
+        <!-- Replaced with an ultra-reliable Wikimedia image link -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" alt="Weird Trick" class="fake-ad-img">
+        <span class="fake-ad-btn">CLICK TO GROW!</span>
+    </a>
+
+    <!-- MAIN GAME CONTAINER -->
+    <div class="app-container">
+        <div class="header">
+            <h1>Catfish Catcher 🎣</h1>
+            <div class="header-stats">
+                <div class="stat-badge">Streak: <span id="score">0</span></div>
+                <div class="stat-badge lives-board" id="lives">❤️❤️❤️</div>
+            </div>
+        </div>
+
+        <div class="card-area">
+            <div class="card" id="profileCard">
+                <img src="" alt="Profile" class="profile-img" id="img">
+                <div class="profile-info">
+                    <h2 id="nameAge">Loading...</h2>
+                    <p id="bio">Please wait...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-catfish" onclick="makeGuess(true)" title="Guess Catfish">🎣</button>
+            <button class="btn btn-real" onclick="makeGuess(false)" title="Guess Real">✅</button>
+        </div>
+
+        <div class="overlay" id="verdictScreen">
+            <h2 id="verdictTitle" style="color: #ff4b4b;">Ouch! ❌</h2>
+            
+            <img id="verdictGif" class="verdict-gif" src="" alt="Fail Meme">
+            
+            <p id="verdictMessage">Reason goes here.</p>
+            <button class="overlay-btn overlay-btn-next" onclick="nextProfile()">Keep Swiping ➡️</button>
+        </div>
+
+        <div class="overlay" id="gameOverScreen">
+            <h2 style="color: #111;">Busted! 🛑</h2>
+            <div class="rank-display">
+                Final Streak: <span id="finalScore">0</span><br>
+                <span id="finalRank" style="font-size: 1.1rem; color: #555;">Rank</span>
+            </div>
+            <p class="final-roast" id="finalRoast">Roast goes here</p>
+            <button class="overlay-btn" onclick="startGame()">Play Again 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // --- SOUND EFFECTS ---
+        const sfxSwipe = new Audio('https://www.myinstants.com/media/sounds/woosh-1.mp3');
+        const sfxCorrect = new Audio('https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3');
+        const sfxWrong = new Audio('https://www.myinstants.com/media/sounds/vine-boom.mp3');
+        const sfxGameOver = new Audio('https://www.myinstants.com/media/sounds/sadtrombone.mp3');
+        
+        sfxSwipe.volume = 0.5;
+        sfxCorrect.volume = 0.4;
+        sfxWrong.volume = 0.8;
+        sfxGameOver.volume = 0.6;
+
+        function playSound(audioEl) {
+            audioEl.currentTime = 0;
+            audioEl.play().catch(e => console.log("Audio play blocked by browser:", e));
+        }
+
+        // --- FUNNY FAIL GIFS ---
+        const failGifs = [
+            "https://media.giphy.com/media/x0npYExCGOZeo/giphy.gif", // Clown putting on makeup
+            "https://media.giphy.com/media/3o6wrebnKWc3N3sN9K/giphy.gif", // Facepalm
+            "https://media.giphy.com/media/jp313yHGzTDBbw5Tg6/giphy.gif", // Bruh Cat
+            "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif" // Crying guy
+        ];
+
+        const baseTemplates = [
+            // --- THE REAL GIRLS ---
+            { name: "Sarah", age: 24, img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80", bio: "I'm literally just here to find someone to go to concerts with. Please don't try to sell me crypto, I'm already broke from buying festival tickets.", isCatfish: false, reason: "Sarah mentions crypto, but in a self-aware, joking way. Real people often vent about dating app scammers in their bios." },
+            { name: "Emily", age: 27, img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&q=80", bio: "Travel blogger & photographer. Always on a plane. Drop your best travel recommendation below. (And no, I don't want to join your forex team).", isCatfish: false, reason: "High-quality travel photos can look fake, but her specific, defensive humor proves she's a real person exhausted by scammers." },
+            { name: "Jess", age: 25, img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80", bio: "Software engineer. I promise I can fix your Wi-Fi, but I will charge you in tacos. Mostly just looking for a gym buddy.", isCatfish: false, reason: "She mentions 'charging' you, but as a relatable joke. Tacos are the universal dating app currency." },
+            { name: "Chloe", age: 29, img: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&q=80", bio: "I rarely check this app. If we match, just tell me where we're getting dinner. I am unapologetically high maintenance about my pasta.", isCatfish: false, reason: "'I rarely check this app' is a common bot phrase, but she follows it up with a very human, quirky demand about pasta, not an IG link." },
+            { name: "Mia", age: 23, img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&q=80", bio: "I have a master's degree but I still push on 'pull' doors. Seeking someone who can parallel park for me.", isCatfish: false, reason: "Self-deprecating humor and highly specific real-world struggles are strong signs of a real human." },
+            { name: "Lily", age: 26, img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&q=80", bio: "Professional model, amateur gamer. Yes, my photos are heavily edited. No, I don't want a sugar daddy. Let's just play Helldivers.", isCatfish: false, reason: "Disarms the 'too pretty to be real' suspicion by openly and bluntly acknowledging her job and shutting down scammers." },
+            { name: "Ava", age: 28, img: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=500&q=80", bio: "Not looking for a pen pal. Let's grab coffee today. If you take more than 24 hours to reply, I'm unmatching.", isCatfish: false, reason: "A bit aggressive, but this is a very typical, genuine human frustration with dating app flakiness." },
+            { name: "Zoe", age: 25, img: "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=500&q=80", bio: "I run my own online business. Send me $5 for coffee. Kidding! But seriously, let's get a drink this weekend.", isCatfish: false, reason: "Joking about money is risky, but the context makes it clearly a playful icebreaker leading to a real date." },
+
+            // --- THE CATFISH ---
+            { name: "Bella", age: 22, img: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=500&q=80", bio: "Living life to the fullest! ✨ I love traveling and fine dining. I'm not on here much, so shoot me a message on IG @bella_luxx99 to see if we vibe.", isCatfish: true, reason: "Seems normal at first, but redirecting to an Instagram with a 'luxx' handle immediately is a classic follower-farming bot." },
+            { name: "Sophia", age: 26, img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&q=80", bio: "Fintech consultant & blockchain enthusiast. I believe in working smart, not hard. Always looking to network with like-minded individuals building their portfolios.", isCatfish: true, reason: "Using words like 'network' and 'portfolios' on a dating app is the modern pig-butchering scammer's introduction." },
+            { name: "Niran", age: 23, img: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=500&q=80", bio: "Just moved to your city for a modeling contract! ✈️ My Tinder is acting so weird and deleting matches. Add my WhatsApp +44 7911 123456 so we don't lose touch.", isCatfish: true, reason: "The 'app is glitching' excuse to move you to WhatsApp (often with an international area code) is a massive scammer red flag." },
+            { name: "Victoria", age: 24, img: "https://images.unsplash.com/photo-1500336624523-d727130c3328?w=500&q=80", bio: "Originally from overseas, now managing my family's import business here. Seeking a trustworthy and honest man to share my success with.", isCatfish: true, reason: "'Trustworthy and honest man to share my success with' is the exact scripted hook for an advance-fee romance scam." },
+            { name: "Lexi", age: 21, img: "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?w=500&q=80", bio: "Fitness enthusiast. Just a fun girl looking for some excitement. 🌶️ Bored at home right now, check my linktree to see what I'm up to.", isCatfish: true, reason: "She's not looking for a date. 'Bored at home' combined with a link is an auto-swiping bot selling premium content." },
+            { name: "Madison", age: 27, img: "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=500&q=80", bio: "Currently serving overseas. It gets incredibly lonely out here. Just looking for a genuine connection with someone back home before my deployment ends.", isCatfish: true, reason: "Phase 1 of a Military Romance scam. They build trust for weeks before suddenly needing funds for a 'secure comms line'." },
+            { name: "Kimi", age: 24, img: "https://images.unsplash.com/photo-1513207565459-d7f36bfa1222?w=500&q=80", bio: "College student studying nursing. I'm very mature for my age. Looking for an older, established gentleman who knows how to treat a lady right and spoil her.", isCatfish: true, reason: "The setup for a sugar scam. Once you match, she will ask for a 'loyalty fee' or 'account verification' via CashApp." },
+            { name: "Elena", age: 28, img: "https://images.unsplash.com/photo-1554151228-14d9def656e4?w=500&q=80", bio: "Entrepreneur. I run my own e-commerce stores. I love spontaneous trips, good wine, and talking about market trends. What's your biggest investment?", isCatfish: true, reason: "Asking about 'market trends' and 'your biggest investment' right in the bio is how crypto scammers profile your wealth." }
+        ];
+
+        const catfishRoasts = [
+            "Your bank account is weeping right now.",
+            "Did you really think a crypto CEO wanted to date you?",
+            "Bro, that's a 45-year-old dude named Chuck in a basement.",
+            "You'd swipe right on a toaster if it had a nice bio.",
+            "Natural selection at its finest.",
+            "I hope you didn't send them your credit card yet.",
+            "Down horrendous, aren't we?",
+            "Your standards are lower than my battery life."
+        ];
+
+        const failTitles = ["Ouch! ❌", "Busted! 🛑", "Gotcha! 🎣", "Fooled! 🤡", "Yikes! 😬", "Tricked! 💔"];
+
+        let currentProfiles = [];
+        let currentIndex = 0;
+        let score = 0;
+        let lives = 3;
+        
+        const imgEl = document.getElementById('img');
+        const nameAgeEl = document.getElementById('nameAge');
+        const bioEl = document.getElementById('bio');
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const card = document.getElementById('profileCard');
+        
+        const verdictScreen = document.getElementById('verdictScreen');
+        const verdictTitle = document.getElementById('verdictTitle');
+        const verdictMessage = document.getElementById('verdictMessage');
+        const verdictGif = document.getElementById('verdictGif');
+        
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScore = document.getElementById('finalScore');
+        const finalRank = document.getElementById('finalRank');
+        const finalRoast = document.getElementById('finalRoast');
+
+        function shuffle(array) {
+            let cur = array.length, rand;
+            while (cur != 0) {
+                rand = Math.floor(Math.random() * cur);
+                cur--;
+                [array[cur], array[rand]] = [array[rand], array[cur]];
+            }
+            return array;
+        }
+
+        function generateDeck() {
+            let deck = JSON.parse(JSON.stringify(baseTemplates));
+            return shuffle(deck);
+        }
+
+        function updateHUD() {
+            scoreEl.innerText = score;
+            livesEl.innerText = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+        }
+
+        function getRankString(finalScore) {
+            if (finalScore <= 2) return "Freshly Catfished 🤡";
+            if (finalScore <= 5) return "Gullible Guppy 🐟";
+            if (finalScore <= 9) return "Tinder Trainee 📱";
+            if (finalScore <= 15) return "Skeptical Salmon 🍣";
+            return "Certified Catfish Detective 🕵️‍♀️";
+        }
+
+        function getFinalRoast(score) {
+            if (score === 0) return '"Did you even open your eyes while playing?"';
+            if (score <= 3) return '"You are a scammer\'s absolute dream come true."';
+            if (score <= 7) return '"You survived for a bit, but your wallet is still empty."';
+            if (score <= 12) return '"Not terrible, but I still wouldn\'t trust you with my credit card."';
+            return '"Okay fine, you actually have some street smarts."';
+        }
+
+        function startGame() {
+            score = 0;
+            lives = 3;
+            updateHUD();
+            gameOverScreen.style.display = 'none';
+            verdictScreen.style.display = 'none';
+            
+            card.style.opacity = '1';
+            card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            card.style.transform = 'translateX(0) rotate(0)';
+            
+            currentProfiles = generateDeck();
+            currentIndex = 0;
+            
+            loadProfile();
+        }
+
+        function loadProfile() {
+            if (currentIndex >= currentProfiles.length) {
+                currentProfiles = currentProfiles.concat(generateDeck());
+            }
+
+            const p = currentProfiles[currentIndex];
+            imgEl.src = p.img;
+            nameAgeEl.innerText = `${p.name}, ${p.age}`;
+            bioEl.innerText = p.bio;
+            
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => card.style.transform = 'scale(1)', 150);
+        }
+
+        function makeGuess(guessedCatfish) {
+            const p = currentProfiles[currentIndex];
+            const isCorrect = (guessedCatfish === p.isCatfish);
+            
+            playSound(sfxSwipe); 
+            
+            card.style.transform = guessedCatfish ? 'translateX(-150%) rotate(-15deg)' : 'translateX(150%) rotate(15deg)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (isCorrect) {
+                    score++;
+                    updateHUD();
+                    playSound(sfxCorrect); 
+                    
+                    currentIndex++;
+                    card.style.transition = 'none';
+                    card.style.transform = 'translateX(0) rotate(0)';
+                    loadProfile();
+                    card.style.opacity = '1';
+                    card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                } else {
+                    lives--;
+                    playSound(sfxWrong); 
+                    
+                    verdictTitle.innerText = failTitles[Math.floor(Math.random() * failTitles.length)];
+                    
+                    verdictGif.src = failGifs[Math.floor(Math.random() * failGifs.length)];
+                    verdictGif.style.display = 'block';
+
+                    let context = p.isCatfish 
+                        ? `You thought ${p.name} was real, but they were a catfish!` 
+                        : `You swiped left on ${p.name}, but they were actually real!`;
+                    
+                    let roastHTML = "";
+                    if (p.isCatfish && !guessedCatfish) {
+                        let randomRoast = catfishRoasts[Math.floor(Math.random() * catfishRoasts.length)];
+                        roastHTML = `<span class="roast-text">🔥 "${randomRoast}"</span>`;
+                    }
+                        
+                    verdictMessage.innerHTML = `<strong>${context}</strong><br><br><em>Lesson:</em> ${p.reason}${roastHTML}`;
+                    
+                    updateHUD();
+                    verdictScreen.style.display = 'flex'; 
+                }
+            }, 300);
+        }
+
+        function nextProfile() {
+            verdictScreen.style.display = 'none'; 
+            verdictGif.style.display = 'none'; 
+            
+            if (lives <= 0) {
+                playSound(sfxGameOver); 
+                finalScore.innerText = score;
+                finalRank.innerText = getRankString(score);
+                finalRoast.innerText = getFinalRoast(score);
+                gameOverScreen.style.display = 'flex';
+            } else {
+                currentIndex++;
+                card.style.transition = 'none';
+                card.style.transform = 'translateX(0) rotate(0)';
+                loadProfile();
+                card.style.opacity = '1';
+                card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            }
+        }
+
+        window.onload = startGame;
+    </script>
+</body>
+</html>
